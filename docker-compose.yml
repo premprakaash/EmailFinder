@@ -1,0 +1,103 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: mailforge
+      POSTGRES_USER: mailforge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mailforge_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailforge -d mailforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=mailforge;Username=mailforge;Password=${POSTGRES_PASSWORD:-mailforge_dev}
+      Jwt__Secret: ${JWT_SECRET:-MailForge_Dev_Secret_Key_Change_In_Production_Min32Chars!}
+      Redis__ConnectionString: redis:6379
+      RabbitMQ__Host: rabbitmq
+      App__FrontendUrl: ${FRONTEND_URL:-http://localhost:3000}
+      App__ExportStoragePath: /app/exports
+      App__BulkUploadPath: /app/uploads
+    ports:
+      - "5000:8080"
+    volumes:
+      - export_data:/app/exports
+      - upload_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/Workers/Dockerfile
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=mailforge;Username=mailforge;Password=${POSTGRES_PASSWORD:-mailforge_dev}
+      Jwt__Secret: ${JWT_SECRET:-MailForge_Dev_Secret_Key_Change_In_Production_Min32Chars!}
+      Redis__ConnectionString: redis:6379
+      RabbitMQ__Host: rabbitmq
+      App__ExportStoragePath: /app/exports
+      App__BulkUploadPath: /app/uploads
+    volumes:
+      - export_data:/app/exports
+      - upload_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:5000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  export_data:
+  upload_data:

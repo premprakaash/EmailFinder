@@ -1,0 +1,40 @@
+## Build artifacts
+bin/
+obj/
+out/
+publish/
+
+## Environment
+.env
+!.env.example
+
+## IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+## Node
+node_modules/
+frontend/.next/
+frontend/out/
+
+## Data
+exports/
+uploads/
+*.db
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Logs
+*.log
+logs/
+
+## Test
+TestResults/
+coverage/
+
+## Docker
+docker-compose.override.yml
