@@ -64,7 +64,7 @@ services:
         condition: service_healthy
 
   worker:
-    image: ${IMAGE_WORKER:-}
+    image: ${IMAGE_WORKER:-mailforge-worker:local}
     build:
       context: .
       dockerfile: src/Workers/Dockerfile
@@ -89,7 +89,7 @@ services:
         condition: service_started
 
   frontend:
-    image: ${IMAGE_FRONTEND:-}
+    image: ${IMAGE_FRONTEND:-mailforge-frontend:local}
     build:
       context: ./frontend
       dockerfile: Dockerfile

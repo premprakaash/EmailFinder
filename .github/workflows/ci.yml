@@ -15,7 +15,7 @@ concurrency:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
 
 jobs:
   backend:
@@ -97,6 +97,7 @@ jobs:
           context: .
           file: src/Api/Dockerfile
           push: false
+          load: true
           tags: mailforge-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -107,6 +108,7 @@ jobs:
           context: .
           file: src/Workers/Dockerfile
           push: false
+          load: true
           tags: mailforge-worker:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -117,6 +119,7 @@ jobs:
           context: frontend
           file: frontend/Dockerfile
           push: false
+          load: true
           tags: mailforge-frontend:ci
           build-args: |
             NEXT_PUBLIC_API_URL=http://localhost:5000
