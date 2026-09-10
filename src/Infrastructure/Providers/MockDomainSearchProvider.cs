@@ -24,6 +24,12 @@ public class MockDomainSearchProvider : IDomainSearchProvider
         ["company.com"] =
         [
             new("David", "Wilson", "CTO", "Company Inc", "company.com", "david.wilson@company.com", EmailStatus.Valid, 91, "Public Directory", DateTime.UtcNow.AddDays(-1))
+        ],
+        ["startup.io"] =
+        [
+            new("Sarah", "Johnson", "Head of Growth", "Startup IO", "startup.io", "sarah.johnson@startup.io", EmailStatus.Valid, 88, "Public Directory", DateTime.UtcNow.AddDays(-1)),
+            new("Michael", "Chen", "Founder & CEO", "Startup IO", "startup.io", "michael.chen@startup.io", EmailStatus.Valid, 95, "Public Directory", DateTime.UtcNow.AddDays(-2)),
+            new("Emily", "Brown", "Marketing Director", "Startup IO", "startup.io", "emily.brown@startup.io", EmailStatus.Risky, 70, "Public Directory", DateTime.UtcNow.AddDays(-3))
         ]
     };
 

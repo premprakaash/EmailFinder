@@ -3,6 +3,7 @@ using MailForge.Application.DTOs.Bulk;
 using MailForge.Application.DTOs.Contacts;
 using MailForge.Application.DTOs.Dashboard;
 using MailForge.Application.DTOs.DomainSearch;
+using MailForge.Application.DTOs.Enrichment;
 using MailForge.Application.DTOs.Exports;
 using MailForge.Application.Interfaces;
 using MailForge.Infrastructure.Persistence;
@@ -57,6 +58,82 @@ public class PublicDomainSearchController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         try { return Ok(await _service.SearchAsync(userId, request, ct)); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+}
+
+[ApiController]
+[Authorize]
+[Route("api/people-discovery")]
+public class PeopleDiscoveryController : ControllerBase
+{
+    private readonly IPeopleDiscoveryService _service;
+    public PeopleDiscoveryController(IPeopleDiscoveryService service) => _service = service;
+
+    [HttpPost]
+    public async Task<ActionResult<PeopleDiscoveryResponse>> Discover([FromBody] PeopleDiscoveryRequest request, CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        try { return Ok(await _service.DiscoverAsync(userId, request, ct)); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+}
+
+[ApiController]
+[Route("api/v1/people-discovery")]
+public class PublicPeopleDiscoveryController : ControllerBase
+{
+    private readonly IPeopleDiscoveryService _service;
+    public PublicPeopleDiscoveryController(IPeopleDiscoveryService service) => _service = service;
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<PeopleDiscoveryResponse>> Discover([FromBody] PeopleDiscoveryRequest request, CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        try { return Ok(await _service.DiscoverAsync(userId, request, ct)); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+}
+
+[ApiController]
+[Authorize]
+[Route("api/enrichment")]
+public class EnrichmentController : ControllerBase
+{
+    private readonly IEnrichmentService _service;
+    public EnrichmentController(IEnrichmentService service) => _service = service;
+
+    [HttpPost]
+    public async Task<ActionResult<EnrichmentResponse>> Enrich([FromBody] EnrichmentRequest request, CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        try
+        {
+            var result = await _service.EnrichAsync(userId, request, ct);
+            return result == null ? NotFound(new { error = "No profile found for this email." }) : Ok(result);
+        }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+}
+
+[ApiController]
+[Route("api/v1/enrichment")]
+public class PublicEnrichmentController : ControllerBase
+{
+    private readonly IEnrichmentService _service;
+    public PublicEnrichmentController(IEnrichmentService service) => _service = service;
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<EnrichmentResponse>> Enrich([FromBody] EnrichmentRequest request, CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        try
+        {
+            var result = await _service.EnrichAsync(userId, request, ct);
+            return result == null ? NotFound(new { error = "No profile found for this email." }) : Ok(result);
+        }
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
     }
 }

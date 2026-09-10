@@ -8,7 +8,7 @@ const nav = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/finder', label: 'Finder' },
   { href: '/verifier', label: 'Verifier' },
-  { href: '/domain-search', label: 'Domain Search' },
+  { href: '/domain-search', label: 'People Discovery' },
   { href: '/bulk', label: 'Bulk Search' },
   { href: '/contacts', label: 'Contacts' },
   { href: '/exports', label: 'Exports' },

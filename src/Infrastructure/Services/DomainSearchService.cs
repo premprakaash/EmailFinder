@@ -12,17 +12,20 @@ public class DomainSearchService : IDomainSearchService
 {
     private readonly IEnumerable<IDomainSearchProvider> _providers;
     private readonly ICreditService _creditService;
+    private readonly ICompanyResolver _companyResolver;
     private readonly MailForgeDbContext _db;
     private readonly ILogger<DomainSearchService> _logger;
 
     public DomainSearchService(
         IEnumerable<IDomainSearchProvider> providers,
         ICreditService creditService,
+        ICompanyResolver companyResolver,
         MailForgeDbContext db,
         ILogger<DomainSearchService> logger)
     {
         _providers = providers.OrderBy(p => p.Priority);
         _creditService = creditService;
+        _companyResolver = companyResolver;
         _db = db;
         _logger = logger;
     }
@@ -32,7 +35,27 @@ public class DomainSearchService : IDomainSearchService
         if (!await _creditService.ConsumeCreditsAsync(userId, CreditOperation.DomainSearch, "Domain search", cancellationToken: cancellationToken))
             throw new InvalidOperationException("Insufficient credits.");
 
-        var domain = request.Domain.Trim().ToLowerInvariant().TrimStart('@');
+        string domain;
+        string? company = request.Company?.Trim();
+        string? resolvedFrom = null;
+
+        if (!string.IsNullOrWhiteSpace(request.Domain))
+        {
+            domain = request.Domain.Trim().ToLowerInvariant().TrimStart('@');
+        }
+        else if (!string.IsNullOrWhiteSpace(company))
+        {
+            var resolved = await _companyResolver.ResolveAsync(company, cancellationToken)
+                ?? throw new InvalidOperationException($"Could not resolve company '{company}' to a domain. Try entering the company website domain directly.");
+            domain = resolved.Domain;
+            company = resolved.CompanyName;
+            resolvedFrom = resolved.Source;
+        }
+        else
+        {
+            throw new InvalidOperationException("Provide a company name or domain to discover people.");
+        }
+
         IReadOnlyList<DomainContactDto> contacts = [];
 
         foreach (var provider in _providers)
@@ -48,6 +71,15 @@ public class DomainSearchService : IDomainSearchService
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(request.JobTitle))
+        {
+            var filter = request.JobTitle.Trim();
+            contacts = contacts.Where(c => c.JobTitle != null &&
+                c.JobTitle.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        company ??= contacts.FirstOrDefault()?.Company;
+
         _db.SearchJobs.Add(new SearchJob
         {
             UserId = userId,
@@ -57,6 +89,6 @@ public class DomainSearchService : IDomainSearchService
         });
         await _db.SaveChangesAsync(cancellationToken);
 
-        return new DomainSearchResponse(domain, contacts);
+        return new DomainSearchResponse(domain, company, contacts, resolvedFrom);
     }
 }

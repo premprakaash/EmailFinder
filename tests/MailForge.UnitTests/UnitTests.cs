@@ -69,12 +69,26 @@ public class DeduplicationTests
     }
 }
 
-public class AuthorizationTests
+public class CompanyResolverTests
 {
-    [Fact]
-    public void AdminRole_HasCorrectValue()
+    private readonly ICompanyResolver _resolver = new CompanyResolver();
+
+    [Theory]
+    [InlineData("Example Corp", "example.com")]
+    [InlineData("company inc", "company.com")]
+    [InlineData("https://www.example.com", "example.com")]
+    [InlineData("startup.io", "startup.io")]
+    public async Task Resolve_KnownCompany_ReturnsDomain(string query, string expectedDomain)
     {
-        Assert.Equal("Admin", MailForge.Shared.Constants.Roles.Admin);
-        Assert.Equal("User", MailForge.Shared.Constants.Roles.User);
+        var result = await _resolver.ResolveAsync(query);
+        Assert.NotNull(result);
+        Assert.Equal(expectedDomain, result!.Domain);
+    }
+
+    [Fact]
+    public async Task Resolve_UnknownCompany_ReturnsNull()
+    {
+        var result = await _resolver.ResolveAsync("Totally Unknown Corp XYZ");
+        Assert.Null(result);
     }
 }

@@ -43,10 +43,14 @@ public static class DependencyInjection
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<IBulkJobService, BulkJobService>();
         services.AddScoped<IDomainIntelligenceService, DomainIntelligenceService>();
+        services.AddScoped<ICompanyResolver, CompanyResolver>();
+        services.AddScoped<IEnrichmentService, EnrichmentService>();
+        services.AddScoped<IPeopleDiscoveryService, PeopleDiscoveryService>();
         services.AddSingleton<IMessagePublisher, MessagePublisher>();
 
         services.AddScoped<IEmailFinderProvider, InternalFinderProvider>();
         services.AddScoped<IEmailVerificationProvider, InternalVerificationProvider>();
+        services.AddScoped<IEnrichmentProvider, MockEnrichmentProvider>();
         services.AddScoped<IDomainSearchProvider, MockDomainSearchProvider>();
 
         return services;

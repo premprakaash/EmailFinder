@@ -1,8 +1,8 @@
-using MailForge.Domain.Enums;
-
 namespace MailForge.Application.DTOs.DomainSearch;
 
-public record DomainSearchRequest(string Domain);
+using MailForge.Domain.Enums;
+
+public record DomainSearchRequest(string? Domain = null, string? Company = null, string? JobTitle = null);
 
 public record DomainContactDto(
     string FirstName,
@@ -16,4 +16,8 @@ public record DomainContactDto(
     string Source,
     DateTime? LastVerifiedAt);
 
-public record DomainSearchResponse(string Domain, IReadOnlyList<DomainContactDto> Contacts);
+public record DomainSearchResponse(
+    string Domain,
+    string? Company,
+    IReadOnlyList<DomainContactDto> Contacts,
+    string? ResolvedFrom = null);
