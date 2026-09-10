@@ -37,6 +37,7 @@ services:
       retries: 5
 
   api:
+    image: ${IMAGE_API:-mailforge-api:local}
     build:
       context: .
       dockerfile: src/Api/Dockerfile
@@ -63,6 +64,7 @@ services:
         condition: service_healthy
 
   worker:
+    image: ${IMAGE_WORKER:-}
     build:
       context: .
       dockerfile: src/Workers/Dockerfile
@@ -87,6 +89,7 @@ services:
         condition: service_started
 
   frontend:
+    image: ${IMAGE_FRONTEND:-}
     build:
       context: ./frontend
       dockerfile: Dockerfile

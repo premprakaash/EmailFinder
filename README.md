@@ -201,6 +201,25 @@ dotnet test tests/MailForge.IntegrationTests
 dotnet test
 ```
 
+## CI/CD
+
+GitHub Actions workflows run on every PR and on pushes to `main`:
+
+| Workflow | Purpose |
+|----------|---------|
+| `ci.yml` | .NET build/test, frontend lint/build, Docker build verify |
+| `cd.yml` | Publish images to GHCR on `main` / tags; staging deploy hook |
+| `release.yml` | GitHub Release + artifacts on `v*.*.*` tags |
+
+See [deploy/README.md](deploy/README.md) for production deployment with GHCR images.
+
+### Quick release
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
 ## Production Deployment
 
 1. Set strong `JWT_SECRET` and `POSTGRES_PASSWORD`
